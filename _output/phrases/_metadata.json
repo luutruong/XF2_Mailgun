@@ -1,0 +1,38 @@
+{
+    "option.tl_Mails_mailgun_apiKey.txt": {
+        "global_cache": false,
+        "version_id": 1000070,
+        "version_string": "1.0.0",
+        "hash": "428bb4293ed9686f4ed302d9d21be53a"
+    },
+    "option.tl_Mails_mailgun_domain.txt": {
+        "global_cache": false,
+        "version_id": 1000070,
+        "version_string": "1.0.0",
+        "hash": "f3fca7e11be4047dc89191090bf8633b"
+    },
+    "option_explain.tl_Mails_mailgun_apiKey.txt": {
+        "global_cache": false,
+        "version_id": 1000070,
+        "version_string": "1.0.0",
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "option_explain.tl_Mails_mailgun_domain.txt": {
+        "global_cache": false,
+        "version_id": 1000070,
+        "version_string": "1.0.0",
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "option_group.tl_Mails.txt": {
+        "global_cache": false,
+        "version_id": 1000070,
+        "version_string": "1.0.0",
+        "hash": "a79ef174534e9b013918d62d17803557"
+    },
+    "option_group_description.tl_Mails.txt": {
+        "global_cache": false,
+        "version_id": 1000070,
+        "version_string": "1.0.0",
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+}
