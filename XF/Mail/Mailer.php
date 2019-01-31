@@ -8,10 +8,14 @@ namespace Truonglv\Mailgun\XF\Mail;
 
 class Mailer extends XFCP_Mailer
 {
-    public function send(\Swift_Mime_Message $message, \Swift_Transport $transport = null)
-    {
+    public function send(
+        \Swift_Mime_Message $message,
+        \Swift_Transport $transport = null,
+        array $queueEntry = null,
+        $allowRetry = true
+    ) {
         $class = \XF::extendClass('Truonglv\Mailgun\Transport\MailGun');
-        /** @var \Truonglv\Mails\Transport\MailGun $mailGun */
+        /** @var \Truonglv\Mailgun\Transport\MailGun $mailGun */
         $mailGun = new $class($this->newMail());
 
         return $mailGun->send($message);

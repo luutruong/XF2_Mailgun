@@ -4,11 +4,13 @@
     "description": "Sending emails through Mailgun service.",
     "version_id": 1000070,
     "version_string": "1.0.0",
-    "dev": "",
-    "dev_url": "",
-    "faq_url": "",
-    "support_url": "",
-    "extra_urls": [],
+    "dev": "Truonglv",
+    "dev_url": "https://nobita.me",
+    "faq_url": "https://nobita.me",
+    "support_url": "https://nobita.me",
+    "extra_urls": {
+        "Icon License": "https://www.flaticon.com/free-icon/at_109725"
+    },
     "require": [],
-    "icon": ""
+    "icon": "icon.png"
 }

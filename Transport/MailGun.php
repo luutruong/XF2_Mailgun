@@ -3,24 +3,47 @@
  * @license
  * Copyright 2018 TruongLuu. All Rights Reserved.
  */
+
 namespace Truonglv\Mailgun\Transport;
 
-class MailGun extends AbstractProvider
+use Swift_Events_EventListener;
+
+class MailGun implements \Swift_Transport
 {
     protected $apiRoot = 'https://api.mailgun.net/v3';
 
     protected $domain;
     protected $apiKey;
+    protected $httpClient;
 
     public function __construct()
     {
-        parent::__construct();
-
+        $this->httpClient = \XF::app()->http()->client();
         $this->domain = \XF::options()->tl_Mails_mailgun_domain;
         $this->apiKey = \XF::options()->tl_Mails_mailgun_apiKey;
     }
 
-    public function send(\Swift_Mime_Message $message)
+    public function isStarted()
+    {
+        return false;
+    }
+
+    public function stop()
+    {
+        // TODO: Implement stop() method.
+    }
+
+    public function registerPlugin(Swift_Events_EventListener $plugin)
+    {
+        // TODO: Implement registerPlugin() method.
+    }
+
+    public function start()
+    {
+        // TODO: Implement start() method.
+    }
+
+    public function send(\Swift_Mime_Message $message, &$failedRecipients = [])
     {
         if (!$this->domain || !$this->apiKey) {
             throw new \LogicException('MailGun not setup correctly.');
