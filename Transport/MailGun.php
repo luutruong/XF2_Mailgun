@@ -91,7 +91,7 @@ class MailGun implements \Swift_Transport
                     'api',
                     $this->apiKey
                 ],
-                'body' => $params
+                'form_params' => $params
             ]);
         } catch (\Exception $e) {
             \XF::logException($e, false, "Email to {$toEmails} failed:");
