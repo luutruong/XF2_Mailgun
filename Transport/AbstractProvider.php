@@ -3,7 +3,7 @@
  * @license
  * Copyright 2018 TruongLuu. All Rights Reserved.
  */
-namespace Truonglv\Mails\Transport;
+namespace Truonglv\Mailgun\Transport;
 
 abstract class AbstractProvider
 {

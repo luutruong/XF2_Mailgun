@@ -1,6 +1,6 @@
 <?php
 
-namespace Truonglv\Mails;
+namespace Truonglv\Mailgun;
 
 use XF\AddOn\AbstractSetup;
 use XF\AddOn\StepRunnerInstallTrait;
