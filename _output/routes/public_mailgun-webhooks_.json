@@ -1,0 +1,11 @@
+{
+    "route_type": "public",
+    "route_prefix": "mailgun-webhooks",
+    "sub_name": "",
+    "format": "",
+    "build_class": "",
+    "build_method": "",
+    "controller": "Truonglv\\Mailgun:Webhooks",
+    "context": "",
+    "action_prefix": ""
+}

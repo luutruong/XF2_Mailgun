@@ -1,35 +1,59 @@
 {
-    "option.tl_Mails_mailgun_apiKey.txt": {
+    "option.tmi_apiKey.txt": {
         "global_cache": false,
         "version_id": 1000070,
         "version_string": "1.0.0",
         "hash": "428bb4293ed9686f4ed302d9d21be53a"
     },
-    "option.tl_Mails_mailgun_domain.txt": {
+    "option.tmi_domain.txt": {
         "global_cache": false,
         "version_id": 1000070,
         "version_string": "1.0.0",
         "hash": "f3fca7e11be4047dc89191090bf8633b"
     },
-    "option_explain.tl_Mails_mailgun_apiKey.txt": {
+    "option.tmi_sc_emailConversation.txt": {
+        "global_cache": false,
+        "version_id": 1000070,
+        "version_string": "1.0.0",
+        "hash": "c7fae94cd7ece847e57c831b74d79e60"
+    },
+    "option.tmi_sc_receiveAdminEmail.txt": {
+        "global_cache": false,
+        "version_id": 1000070,
+        "version_string": "1.0.0",
+        "hash": "220f433725e68998d20afa3cd7b3237f"
+    },
+    "option_explain.tmi_apiKey.txt": {
         "global_cache": false,
         "version_id": 1000070,
         "version_string": "1.0.0",
         "hash": "d41d8cd98f00b204e9800998ecf8427e"
     },
-    "option_explain.tl_Mails_mailgun_domain.txt": {
+    "option_explain.tmi_domain.txt": {
         "global_cache": false,
         "version_id": 1000070,
         "version_string": "1.0.0",
         "hash": "d41d8cd98f00b204e9800998ecf8427e"
     },
-    "option_group.tl_Mails.txt": {
+    "option_explain.tmi_sc_emailConversation.txt": {
         "global_cache": false,
         "version_id": 1000070,
         "version_string": "1.0.0",
-        "hash": "a79ef174534e9b013918d62d17803557"
+        "hash": "d56d248ed480e65f2e2895cf17135281"
     },
-    "option_group_description.tl_Mails.txt": {
+    "option_explain.tmi_sc_receiveAdminEmail.txt": {
+        "global_cache": false,
+        "version_id": 1000070,
+        "version_string": "1.0.0",
+        "hash": "8430fef522729da04dfbf0b5c38f7519"
+    },
+    "option_group.tl_Mailgun.txt": {
+        "global_cache": false,
+        "version_id": 1000070,
+        "version_string": "1.0.0",
+        "hash": "61766dcff4546334ee07ea7b5c6bae75"
+    },
+    "option_group_description.tl_Mailgun.txt": {
         "global_cache": false,
         "version_id": 1000070,
         "version_string": "1.0.0",

@@ -1,0 +1,9 @@
+{
+    "event_id": "mailer_transport_setup",
+    "execute_order": 10,
+    "callback_class": "Truonglv\\Mailgun\\Listener",
+    "callback_method": "mailerTransportSetup",
+    "active": true,
+    "hint": "",
+    "description": ""
+}

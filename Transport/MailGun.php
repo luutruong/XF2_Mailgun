@@ -10,22 +10,38 @@ use Swift_Events_EventListener;
 
 class MailGun implements \Swift_Transport
 {
-    protected $apiRoot = 'https://api.mailgun.net/v3';
+    const API_BASE = 'https://api.mailgun.net/v3';
 
     protected $domain;
     protected $apiKey;
     protected $httpClient;
+    protected $eventDispatcher;
 
-    public function __construct()
+    public function __construct(\Swift_Events_EventDispatcher $eventDispatcher)
     {
         $this->httpClient = \XF::app()->http()->client();
-        $this->domain = \XF::options()->tl_Mails_mailgun_domain;
-        $this->apiKey = \XF::options()->tl_Mails_mailgun_apiKey;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     public function isStarted()
     {
         return false;
+    }
+
+    /**
+     * @param string $apiKey
+     */
+    public function setApiKey($apiKey)
+    {
+        $this->apiKey = $apiKey;
+    }
+
+    /**
+     * @param string $domain
+     */
+    public function setDomain($domain)
+    {
+        $this->domain = $domain;
     }
 
     public function stop()
@@ -35,7 +51,7 @@ class MailGun implements \Swift_Transport
 
     public function registerPlugin(Swift_Events_EventListener $plugin)
     {
-        // TODO: Implement registerPlugin() method.
+        $this->eventDispatcher->bindEventListener($plugin);
     }
 
     public function start()
@@ -45,62 +61,101 @@ class MailGun implements \Swift_Transport
 
     public function send(\Swift_Mime_Message $message, &$failedRecipients = [])
     {
-        if (!$this->domain || !$this->apiKey) {
-            throw new \LogicException('MailGun not setup correctly.');
-        }
+        $this->assertApiWasSetup();
 
-        $to = $message->getTo();
-        $toEmails = $to ? implode(', ', array_keys($to)) : '[unknown]';
+        $failedRecipients = (array) $failedRecipients;
 
-        $client = $this->httpClient;
-
-        $params = [
-            'from' => 'xenforo@' . $this->domain,
-            'to' => $toEmails,
-            'subject' => $message->getSubject()
-        ];
-
-        /** @var \Swift_MimePart $children */
-        foreach ($message->getChildren() as $children) {
-            if ($children->getContentType() === 'text/html') {
-                $params['html'] = $children->getBody();
-
-                /** @var \Swift_Mime_Headers_ParameterizedHeader $header */
-                foreach ($children->getHeaders()->getAll() as $header) {
-                    $params['h:' . $header->getFieldName()] = $header->getFieldBody();
-                }
-
-                break;
-            } elseif ($children->getContentType() === 'text/plain') {
-                $params['text'] = $children->getBody();
-
-                /** @var \Swift_Mime_Headers_ParameterizedHeader $header */
-                foreach ($children->getHeaders()->getAll() as $header) {
-                    $params['h:' . $header->getFieldName()] = $header->getFieldBody();
-                }
-
-                break;
-            } else {
-                throw new \LogicException('Unknown email content type (' . $children->getContentType() . ')');
+        if ($evt = $this->eventDispatcher->createSendEvent($this, $message)) {
+            $this->eventDispatcher->dispatchEvent($evt, 'beforeSendPerformed');
+            if ($evt->bubbleCancelled()) {
+                return 0;
             }
         }
 
-        try {
-            $response = $client->post($this->apiRoot . '/' . $this->domain . '/messages', [
-                'auth' => [
-                    'api',
-                    $this->apiKey
-                ],
-                'form_params' => $params
-            ]);
-        } catch (\Exception $e) {
-            \XF::logException($e, false, "Email to {$toEmails} failed:");
+        $to = (array) $message->getTo();
+        $cc = (array) $message->getCc();
+        $bcc = (array) $message->getBcc();
 
-            return false;
+        $count = (count($to) + count($cc) + count($bcc));
+
+        $payload = [
+            'from' => 'xenforo@' . $this->domain,
+            'subject' => $message->getSubject()
+        ];
+
+        if ($message->getContentType() === 'text/html') {
+            $payload['html'] = strval($message->getBody());
+        } else {
+            $payload['text'] = strval($message->getBody());
         }
 
-        $body = $response->getBody();
+        /** @var \Swift_MimePart $children */
+        foreach ($message->getChildren() as $children) {
+            /** @var \Swift_Mime_Headers_ParameterizedHeader $header */
+            foreach ($children->getHeaders()->getAll() as $header) {
+                $payload['h:' . $header->getFieldName()] = $header->getFieldBody();
+            }
+        }
 
-        return $body;
+        $this->doSendMessage($evt, $payload, $to, $failedRecipients);
+        $this->doSendMessage($evt, $payload, $cc, $failedRecipients);
+        $this->doSendMessage($evt, $payload, $bcc, $failedRecipients);
+
+        return $count;
+    }
+
+    private function doSendMessage(\Swift_Events_SendEvent $event, array $payload, array $recipients, array &$failedRecipients = [])
+    {
+        foreach ($recipients as $recipient) {
+            $response = null;
+
+            try {
+                $response = $this->httpClient->post(self::API_BASE . '/' . $this->domain . '/messages', [
+                    'auth' => [
+                        'api',
+                        $this->apiKey
+                    ],
+                    'form_params' => $payload
+                ]);
+            } catch (\Exception $e) {
+                $this->logError($e);
+            }
+
+            if (!$response || $response->getStatusCode() !== 200) {
+                $failedRecipients[] = $recipient;
+
+                return false;
+            }
+
+            $json = json_decode($response->getBody()->getContents(), true);
+            if (!isset($json['id'])) {
+                $failedRecipients[] = $recipient;
+                $_GET['__doSendMessageResponse'] = $json;
+                $this->logError('Bad json response!');
+                unset($_GET['__doSendMessageResponse']);
+
+                return false;
+            }
+
+            $this->eventDispatcher->dispatchEvent($event, 'sendPerformed');
+        }
+
+        return true;
+    }
+
+    private function logError($error)
+    {
+        if ($error instanceof \Exception) {
+            \XF::logException($error, false, '[tl] Mailgun Integration: ');
+        } else {
+            \XF::logError("[tl] Mailgun Integration: {$error}");
+        }
+    }
+
+    private function assertApiWasSetup()
+    {
+        if (!$this->domain || !$this->apiKey) {
+            throw new \LogicException('MailGun was not setup correctly.');
+        }
     }
 }
