@@ -107,6 +107,7 @@ class Webhooks extends AbstractController
         }
 
         $apiKey = $this->options()->tmi_apiKey;
+
         return hash_hmac('sha256', $ts . $token, $apiKey) === $signature;
     }
 
