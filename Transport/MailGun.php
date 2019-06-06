@@ -72,9 +72,9 @@ class MailGun implements \Swift_Transport
             }
         }
 
-        $to = (array) $message->getTo();
-        $cc = (array) $message->getCc();
-        $bcc = (array) $message->getBcc();
+        $to = $message->getTo();
+        $cc = $message->getCc();
+        $bcc = $message->getBcc();
 
         $count = (count($to) + count($cc) + count($bcc));
 

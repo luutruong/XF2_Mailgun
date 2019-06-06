@@ -69,7 +69,7 @@ class Webhooks extends AbstractController
             return null;
         }
 
-        $input = file_get_contents('php://input');
+        $input = strval(file_get_contents('php://input'));
         $json = json_decode($input, true);
 
         if (!is_array($json) || !isset($json['signature']) || !isset($json['event-data'])) {
