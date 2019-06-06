@@ -11,6 +11,12 @@
         "version_string": "1.0.0",
         "hash": "f3fca7e11be4047dc89191090bf8633b"
     },
+    "option.tmi_logWebhooks.txt": {
+        "global_cache": false,
+        "version_id": 1000070,
+        "version_string": "1.0.0",
+        "hash": "6a218871dade93aa2575a2d7a4467357"
+    },
     "option.tmi_sc_emailConversation.txt": {
         "global_cache": false,
         "version_id": 1000070,
@@ -30,6 +36,12 @@
         "hash": "d41d8cd98f00b204e9800998ecf8427e"
     },
     "option_explain.tmi_domain.txt": {
+        "global_cache": false,
+        "version_id": 1000070,
+        "version_string": "1.0.0",
+        "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "option_explain.tmi_logWebhooks.txt": {
         "global_cache": false,
         "version_id": 1000070,
         "version_string": "1.0.0",

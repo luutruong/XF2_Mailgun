@@ -24,6 +24,12 @@ class Webhooks extends AbstractController
 
         $userOption->save();
 
+        $this->logInfo(sprintf(
+            'Update email notifications for (%s#%d). Reason: Spam complaints',
+            $user->username,
+            $user->user_id
+        ));
+
         die('OK');
     }
 
@@ -44,6 +50,12 @@ class Webhooks extends AbstractController
 
         $userOption->save();
 
+        $this->logInfo(sprintf(
+            'Update email notifications for (%s#%d). Reason: Unsubscribes',
+            $user->username,
+            $user->user_id
+        ));
+
         die('OK');
     }
 
@@ -59,6 +71,12 @@ class Webhooks extends AbstractController
 
         $user->user_state = 'email_bounce';
         $user->save();
+
+        $this->logInfo(sprintf(
+            'Update user_state=email_bounce for (%s#%d). Reason: Permanent Failure',
+            $user->username,
+            $user->user_id
+        ));
 
         die('OK');
     }
@@ -94,6 +112,19 @@ class Webhooks extends AbstractController
             'data' => $json,
             'user' => $user
         ];
+    }
+
+    protected function logInfo($message)
+    {
+        if (!$this->options()->tmi_logWebhooks) {
+            return;
+        }
+
+        if ($message instanceof \Exception) {
+            $this->app->logException($message, false, '[tl] Mailgun Integration: [Info] ');
+        } else {
+            \XF::logError("[tl] Mailgun Integration: [Info] {$message}");
+        }
     }
 
     protected function verifyPayload(array $payload)
