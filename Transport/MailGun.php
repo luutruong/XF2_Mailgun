@@ -117,6 +117,8 @@ class MailGun implements \Swift_Transport
         foreach ($recipients as $recipient) {
             $response = null;
 
+            $payload['to'] = $recipient;
+
             try {
                 $response = $this->httpClient->post(self::API_BASE . '/' . $this->domain . '/messages', [
                     'auth' => [
