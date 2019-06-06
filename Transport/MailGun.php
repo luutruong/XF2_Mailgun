@@ -72,9 +72,17 @@ class MailGun implements \Swift_Transport
             }
         }
 
-        $to = $message->getTo();
-        $cc = $message->getCc();
-        $bcc = $message->getBcc();
+        $getRecipients = function ($method) use ($message) {
+            /** @var callable $callable */
+            $callable = [$message, $method];
+            $mixed = call_user_func($callable);
+
+            return (array) $mixed;
+        };
+
+        $to = $getRecipients('getTo');
+        $cc = $getRecipients('getCc');
+        $bcc = $getRecipients('getBcc');
 
         $count = (count($to) + count($cc) + count($bcc));
 
