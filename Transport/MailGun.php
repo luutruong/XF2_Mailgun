@@ -89,30 +89,35 @@ class MailGun implements \Swift_Transport
         $payload = [
             'from' => 'xenforo@' . $this->domain,
             'subject' => $message->getSubject(),
-            'html' => $message->toString()
+            'text' => $message->getBody()
         ];
 
-        /** @var \Swift_MimePart $children */
         foreach ($message->getChildren() as $children) {
-            /** @var \Swift_Mime_Headers_ParameterizedHeader $header */
-            foreach ($children->getHeaders()->getAll() as $header) {
-                $payload['h:' . $header->getFieldName()] = $header->getFieldBody();
+            if ($children->getContentType() === 'text/html') {
+                $payload['html'] = $children->getBody();
+            } elseif ($children->getContentType() === 'text/plain') {
+                $payload['text'] = $children->getBody();
             }
         }
 
-        $this->doSendMessage($evt, $payload, array_keys($to), $failedRecipients);
-        $this->doSendMessage($evt, $payload, array_keys($cc), $failedRecipients);
-        $this->doSendMessage($evt, $payload, array_keys($bcc), $failedRecipients);
+        $this->doSendMessage($evt, $payload, 'to', array_keys($to), $failedRecipients);
+        $this->doSendMessage($evt, $payload, 'cc', array_keys($cc), $failedRecipients);
+        $this->doSendMessage($evt, $payload, 'bcc', array_keys($bcc), $failedRecipients);
 
         return $count;
     }
 
-    private function doSendMessage(\Swift_Events_SendEvent $event, array $payload, array $recipients, array &$failedRecipients = [])
-    {
+    private function doSendMessage(
+        \Swift_Events_SendEvent $event,
+        array $payload,
+        $recipientKey,
+        array $recipients,
+        array &$failedRecipients = []
+    ) {
         foreach ($recipients as $recipient) {
             $response = null;
 
-            $payload['to'] = $recipient;
+            $payload[$recipientKey] = $recipient;
 
             try {
                 $response = $this->httpClient->post(self::API_BASE . '/' . $this->domain . '/messages', [
