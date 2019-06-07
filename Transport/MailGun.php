@@ -92,9 +92,9 @@ class MailGun implements \Swift_Transport
         ];
 
         if ($message->getContentType() === 'text/html') {
-            $payload['html'] = strval($message->getBody());
+            $payload['html'] = $message->toString();
         } else {
-            $payload['text'] = strval($message->getBody());
+            $payload['text'] = $message->toString();
         }
 
         /** @var \Swift_MimePart $children */
@@ -142,7 +142,7 @@ class MailGun implements \Swift_Transport
             $json = json_decode($response->getBody()->getContents(), true);
             if (!isset($json['id'])) {
                 $failedRecipients[] = $recipient;
-                
+
                 $_GET['__doSendMessageResponse'] = $json;
                 $this->logError('Bad json response!');
                 unset($_GET['__doSendMessageResponse']);
