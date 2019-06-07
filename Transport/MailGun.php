@@ -128,7 +128,9 @@ class MailGun implements \Swift_Transport
                     'form_params' => $payload
                 ]);
             } catch (\Exception $e) {
+                $_GET['__doSendMessagePayload'] = $payload;
                 $this->logError($e);
+                unset($_GET['__doSendMessagePayload']);
             }
 
             if (!$response || $response->getStatusCode() !== 200) {
@@ -140,6 +142,7 @@ class MailGun implements \Swift_Transport
             $json = json_decode($response->getBody()->getContents(), true);
             if (!isset($json['id'])) {
                 $failedRecipients[] = $recipient;
+                
                 $_GET['__doSendMessageResponse'] = $json;
                 $this->logError('Bad json response!');
                 unset($_GET['__doSendMessageResponse']);
