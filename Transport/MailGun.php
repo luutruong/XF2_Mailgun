@@ -88,14 +88,9 @@ class MailGun implements \Swift_Transport
 
         $payload = [
             'from' => 'xenforo@' . $this->domain,
-            'subject' => $message->getSubject()
+            'subject' => $message->getSubject(),
+            'html' => $message->toString()
         ];
-
-        if ($message->getContentType() === 'text/html') {
-            $payload['html'] = $message->toString();
-        } else {
-            $payload['text'] = $message->toString();
-        }
 
         /** @var \Swift_MimePart $children */
         foreach ($message->getChildren() as $children) {
