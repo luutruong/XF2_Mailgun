@@ -105,9 +105,9 @@ class MailGun implements \Swift_Transport
             }
         }
 
-        $this->doSendMessage($evt, $payload, $to, $failedRecipients);
-        $this->doSendMessage($evt, $payload, $cc, $failedRecipients);
-        $this->doSendMessage($evt, $payload, $bcc, $failedRecipients);
+        $this->doSendMessage($evt, $payload, array_keys($to), $failedRecipients);
+        $this->doSendMessage($evt, $payload, array_keys($cc), $failedRecipients);
+        $this->doSendMessage($evt, $payload, array_keys($bcc), $failedRecipients);
 
         return $count;
     }
