@@ -13,5 +13,8 @@
     },
     "tmi_sc_receiveAdminEmail.json": {
         "hash": "90fb468400733df11e7b148415e9b11d"
+    },
+    "tmi_senderName.json": {
+        "hash": "781d099251433c0014e0b81163a8df81"
     }
 }

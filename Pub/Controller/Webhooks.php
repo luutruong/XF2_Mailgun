@@ -11,7 +11,7 @@ class Webhooks extends AbstractController
     {
         $data = $this->getWebhooksData();
         if ($data === null) {
-            return $this->throwNotAcceptableRequest();
+            $this->throwNotAcceptableRequest();
         }
 
         /** @var User $user */
@@ -37,7 +37,7 @@ class Webhooks extends AbstractController
     {
         $data = $this->getWebhooksData();
         if ($data === null) {
-            return $this->throwNotAcceptableRequest();
+            $this->throwNotAcceptableRequest();
         }
 
         /** @var User $user */
@@ -63,7 +63,7 @@ class Webhooks extends AbstractController
     {
         $data = $this->getWebhooksData();
         if ($data === null) {
-            return $this->throwNotAcceptableRequest();
+            $this->throwNotAcceptableRequest();
         }
 
         /** @var User $user */
@@ -81,6 +81,9 @@ class Webhooks extends AbstractController
         die('OK');
     }
 
+    /**
+     * @return array|null
+     */
     protected function getWebhooksData()
     {
         if (!$this->request->isPost()) {
@@ -114,6 +117,10 @@ class Webhooks extends AbstractController
         ];
     }
 
+    /**
+     * @param string|\Exception $message
+     * @return void
+     */
     protected function logInfo($message)
     {
         if (!$this->options()->tmi_logWebhooks) {
@@ -127,6 +134,10 @@ class Webhooks extends AbstractController
         }
     }
 
+    /**
+     * @param array $payload
+     * @return bool
+     */
     protected function verifyPayload(array $payload)
     {
         $ts = $payload['signature']['timestamp'];
@@ -142,6 +153,10 @@ class Webhooks extends AbstractController
         return hash_hmac('sha256', $ts . $token, $apiKey) === $signature;
     }
 
+    /**
+     * @throws \XF\Mvc\Reply\Exception
+     * @return void
+     */
     protected function throwNotAcceptableRequest()
     {
         $response = $this->app()->response();

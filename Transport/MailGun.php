@@ -11,11 +11,32 @@ use Swift_Events_EventListener;
 class MailGun implements \Swift_Transport
 {
     const API_BASE = 'https://api.mailgun.net/v3';
+    const DEFAULT_SENDER_NAME = 'xenforo';
 
+    /**
+     * @var string
+     */
     protected $domain;
+
+    /**
+     * @var string
+     */
     protected $apiKey;
+
+    /**
+     * @var \GuzzleHttp\Client
+     */
     protected $httpClient;
+
+    /**
+     * @var \Swift_Events_EventDispatcher
+     */
     protected $eventDispatcher;
+
+    /**
+     * @var string
+     */
+    protected $senderName;
 
     public function __construct(\Swift_Events_EventDispatcher $eventDispatcher)
     {
@@ -23,6 +44,9 @@ class MailGun implements \Swift_Transport
         $this->eventDispatcher = $eventDispatcher;
     }
 
+    /**
+     * @return bool
+     */
     public function isStarted()
     {
         return false;
@@ -30,6 +54,7 @@ class MailGun implements \Swift_Transport
 
     /**
      * @param string $apiKey
+     * @return void
      */
     public function setApiKey($apiKey)
     {
@@ -38,34 +63,61 @@ class MailGun implements \Swift_Transport
 
     /**
      * @param string $domain
+     * @return void
      */
     public function setDomain($domain)
     {
         $this->domain = $domain;
     }
 
+    /**
+     * @param string $senderName
+     * @return void
+     */
+    public function setSenderName(string $senderName)
+    {
+        $this->senderName = $senderName;
+    }
+
+    /**
+     * @return void
+     */
     public function stop()
     {
         // TODO: Implement stop() method.
     }
 
+    /**
+     * @param Swift_Events_EventListener $plugin
+     * @return void
+     */
     public function registerPlugin(Swift_Events_EventListener $plugin)
     {
         $this->eventDispatcher->bindEventListener($plugin);
     }
 
+    /**
+     * @return void
+     */
     public function start()
     {
         // TODO: Implement start() method.
     }
 
+    /**
+     * @param \Swift_Mime_Message $message
+     * @param mixed $failedRecipients
+     * @return int
+     */
     public function send(\Swift_Mime_Message $message, &$failedRecipients = [])
     {
         $this->assertApiWasSetup();
 
         $failedRecipients = (array) $failedRecipients;
 
-        if ($evt = $this->eventDispatcher->createSendEvent($this, $message)) {
+        /** @var mixed $evt */
+        $evt = $this->eventDispatcher->createSendEvent($this, $message);
+        if ($evt instanceof \Swift_Events_SendEvent) {
             $this->eventDispatcher->dispatchEvent($evt, 'beforeSendPerformed');
             if ($evt->bubbleCancelled()) {
                 return 0;
@@ -86,8 +138,13 @@ class MailGun implements \Swift_Transport
 
         $count = (count($to) + count($cc) + count($bcc));
 
+        $senderName = trim($this->senderName);
+        if ($senderName === '') {
+            $senderName = self::DEFAULT_SENDER_NAME;
+        }
+
         $payload = [
-            'from' => 'xenforo@' . $this->domain,
+            'from' => $senderName . '@' . $this->domain,
             'subject' => $message->getSubject(),
             'text' => $message->getBody()
         ];
@@ -107,6 +164,14 @@ class MailGun implements \Swift_Transport
         return $count;
     }
 
+    /**
+     * @param \Swift_Events_SendEvent $event
+     * @param array $payload
+     * @param string $recipientKey
+     * @param array $recipients
+     * @param array $failedRecipients
+     * @return bool
+     */
     private function doSendMessage(
         \Swift_Events_SendEvent $event,
         array $payload,
@@ -156,6 +221,10 @@ class MailGun implements \Swift_Transport
         return true;
     }
 
+    /**
+     * @param string|\Exception $error
+     * @return void
+     */
     private function logError($error)
     {
         if ($error instanceof \Exception) {
@@ -165,9 +234,12 @@ class MailGun implements \Swift_Transport
         }
     }
 
+    /**
+     * @return void
+     */
     private function assertApiWasSetup()
     {
-        if (!$this->domain || !$this->apiKey) {
+        if (trim($this->domain) === '' || trim($this->apiKey) === '') {
             throw new \LogicException('MailGun was not setup correctly.');
         }
     }

@@ -29,6 +29,12 @@
         "version_string": "1.0.0",
         "hash": "220f433725e68998d20afa3cd7b3237f"
     },
+    "option.tmi_senderName.txt": {
+        "global_cache": false,
+        "version_id": 1000100,
+        "version_string": "1.0.1",
+        "hash": "90ed58883831551ef960da4f7cde1240"
+    },
     "option_explain.tmi_apiKey.txt": {
         "global_cache": false,
         "version_id": 1000070,
@@ -58,6 +64,12 @@
         "version_id": 1000070,
         "version_string": "1.0.0",
         "hash": "8430fef522729da04dfbf0b5c38f7519"
+    },
+    "option_explain.tmi_senderName.txt": {
+        "global_cache": false,
+        "version_id": 1000100,
+        "version_string": "1.0.1",
+        "hash": "258e54c2ca8722694868f4eff32ec813"
     },
     "option_group.tl_Mailgun.txt": {
         "global_cache": false,

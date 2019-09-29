@@ -1,0 +1,1 @@
+Please only use <b>A-Za-z</b> and <b>_</b> characters only. By default it's used <b>xenforo</b>.
