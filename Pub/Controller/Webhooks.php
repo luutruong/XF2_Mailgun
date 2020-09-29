@@ -12,17 +12,20 @@ class Webhooks extends AbstractController
         $data = $this->getWebhooksData();
         if ($data === null) {
             $this->throwNotAcceptableRequest();
+
+            return;
         }
 
         /** @var User $user */
         $user = $data['user'];
 
         $userOption = $user->Option;
+        if ($userOption !== null) {
+            $userOption->receive_admin_email = $this->options()->tmi_sc_receiveAdminEmail;
+            $userOption->email_on_conversation = $this->options()->tmi_sc_emailConversation;
 
-        $userOption->receive_admin_email = $this->options()->tmi_sc_receiveAdminEmail;
-        $userOption->email_on_conversation = $this->options()->tmi_sc_emailConversation;
-
-        $userOption->save();
+            $userOption->save();
+        }
 
         $this->logInfo(sprintf(
             'Update email notifications for (%s#%d). Reason: Spam complaints',
@@ -38,17 +41,20 @@ class Webhooks extends AbstractController
         $data = $this->getWebhooksData();
         if ($data === null) {
             $this->throwNotAcceptableRequest();
+
+            return;
         }
 
         /** @var User $user */
         $user = $data['user'];
 
         $userOption = $user->Option;
+        if ($userOption !== null) {
+            $userOption->receive_admin_email = false;
+            $userOption->email_on_conversation = false;
 
-        $userOption->receive_admin_email = false;
-        $userOption->email_on_conversation = false;
-
-        $userOption->save();
+            $userOption->save();
+        }
 
         $this->logInfo(sprintf(
             'Update email notifications for (%s#%d). Reason: Unsubscribes',
@@ -64,6 +70,8 @@ class Webhooks extends AbstractController
         $data = $this->getWebhooksData();
         if ($data === null) {
             $this->throwNotAcceptableRequest();
+
+            return;
         }
 
         /** @var User $user */
@@ -103,7 +111,7 @@ class Webhooks extends AbstractController
         $user = $recipient
             ? $this->em()->findOne('XF:User', ['email' => $recipient])
             : null;
-        if (!$user) {
+        if ($user === null) {
             return null;
         }
 

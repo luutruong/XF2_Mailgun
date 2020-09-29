@@ -198,7 +198,7 @@ class MailGun implements \Swift_Transport
                 unset($_GET['__doSendMessagePayload']);
             }
 
-            if (!$response || $response->getStatusCode() !== 200) {
+            if ($response === null || $response->getStatusCode() !== 200) {
                 $failedRecipients[] = $recipient;
 
                 return false;
@@ -244,8 +244,11 @@ class MailGun implements \Swift_Transport
         }
     }
 
+    /**
+     * @return bool
+     */
     public function ping()
     {
-        // TODO: Implement ping() method.
+        return false;
     }
 }
