@@ -11,6 +11,11 @@
     "extra_urls": {
         "Icon License": "https://www.flaticon.com/free-icon/at_109725"
     },
-    "require": [],
+    "require": {
+        "XF": [
+            2020070,
+            "XenForo 2.2.0 or higher"
+        ]
+    },
     "icon": "icon.png"
 }

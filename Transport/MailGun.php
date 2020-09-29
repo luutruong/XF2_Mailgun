@@ -56,7 +56,7 @@ class MailGun implements \Swift_Transport
      * @param string $apiKey
      * @return void
      */
-    public function setApiKey($apiKey)
+    public function setApiKey(string $apiKey)
     {
         $this->apiKey = $apiKey;
     }
@@ -65,7 +65,7 @@ class MailGun implements \Swift_Transport
      * @param string $domain
      * @return void
      */
-    public function setDomain($domain)
+    public function setDomain(string $domain)
     {
         $this->domain = $domain;
     }
@@ -105,11 +105,11 @@ class MailGun implements \Swift_Transport
     }
 
     /**
-     * @param \Swift_Mime_Message $message
+     * @param \Swift_Mime_SimpleMessage $message
      * @param mixed $failedRecipients
      * @return int
      */
-    public function send(\Swift_Mime_Message $message, &$failedRecipients = [])
+    public function send(\Swift_Mime_SimpleMessage $message, &$failedRecipients = [])
     {
         $this->assertApiWasSetup();
 
@@ -175,7 +175,7 @@ class MailGun implements \Swift_Transport
     private function doSendMessage(
         \Swift_Events_SendEvent $event,
         array $payload,
-        $recipientKey,
+        string $recipientKey,
         array $recipients,
         array &$failedRecipients = []
     ) {
@@ -242,5 +242,10 @@ class MailGun implements \Swift_Transport
         if (trim($this->domain) === '' || trim($this->apiKey) === '') {
             throw new \LogicException('MailGun was not setup correctly.');
         }
+    }
+
+    public function ping()
+    {
+        // TODO: Implement ping() method.
     }
 }
