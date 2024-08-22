@@ -2,28 +2,27 @@
 
 namespace Truonglv\Mailgun;
 
-use Truonglv\Mailgun\Transport\MailGun;
+use XF;
+use Symfony\Component\Mailer\Transport\Dsn;
 
 class Listener
 {
-    /**
-     * @param \XF\Container $container
-     * @param null|mixed $transport
-     * @throws \Swift_DependencyException
-     * @return void
-     */
     public static function mailerTransportSetup(\XF\Container $container, &$transport = null)
     {
-        $transport = new MailGun(
-            \Swift_DependencyContainer::getInstance()->lookup('transport.eventdispatcher')
-        );
+        $factory = new MailgunFactory();
+        $options = XF::app()->options();
 
-        $options = \XF::app()->options();
-
-        $transport->setApiKey($options->tmi_apiKey);
-        $transport->setDomain($options->tmi_domain);
-        $transport->setSenderName($options->tmi_senderName);
-
-        $transport->registerPlugin(new \Swift_Plugins_AntiFloodPlugin(99));
+        $transport = $factory->create(new Dsn(
+            'https',
+            'api.mailgun.net',
+            null,
+            null,
+            443,
+            [
+                'api_key' => $options->tmi_apiKey,
+                'domain' => $options->tmi_domain,
+                'sender_name' => $options->tmi_senderName,
+            ]
+        ));
     }
 }

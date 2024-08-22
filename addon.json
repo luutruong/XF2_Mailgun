@@ -13,8 +13,12 @@
     },
     "require": {
         "XF": [
-            2020070,
-            "XenForo 2.2.0 or higher"
+            2030070,
+            "XenForo 2.3.0 or higher"
+        ],
+        "php": [
+            "7.4.0",
+            "PHP 7.4.0"
         ]
     },
     "icon": "icon.png"

@@ -2,6 +2,8 @@
 
 namespace Truonglv\Mailgun\Pub\Controller;
 
+use XF;
+use Exception;
 use XF\Entity\User;
 use XF\Pub\Controller\AbstractController;
 
@@ -12,8 +14,6 @@ class Webhooks extends AbstractController
         $data = $this->getWebhooksData();
         if ($data === null) {
             $this->throwNotAcceptableRequest();
-
-            return;
         }
 
         /** @var User $user */
@@ -41,8 +41,6 @@ class Webhooks extends AbstractController
         $data = $this->getWebhooksData();
         if ($data === null) {
             $this->throwNotAcceptableRequest();
-
-            return;
         }
 
         /** @var User $user */
@@ -70,8 +68,6 @@ class Webhooks extends AbstractController
         $data = $this->getWebhooksData();
         if ($data === null) {
             $this->throwNotAcceptableRequest();
-
-            return;
         }
 
         /** @var User $user */
@@ -105,9 +101,7 @@ class Webhooks extends AbstractController
             return null;
         }
 
-        $recipient = isset($json['event-data']['recipient'])
-            ? $json['event-data']['recipient']
-            : null;
+        $recipient = $json['event-data']['recipient'] ?? null;
         $user = $recipient
             ? $this->em()->findOne('XF:User', ['email' => $recipient])
             : null;
@@ -126,7 +120,7 @@ class Webhooks extends AbstractController
     }
 
     /**
-     * @param string|\Exception $message
+     * @param string|Exception $message
      * @return void
      */
     protected function logInfo($message)
@@ -135,10 +129,10 @@ class Webhooks extends AbstractController
             return;
         }
 
-        if ($message instanceof \Exception) {
+        if ($message instanceof Exception) {
             $this->app->logException($message, false, '[tl] Mailgun Integration: [Info] ');
         } else {
-            \XF::logError("[tl] Mailgun Integration: [Info] {$message}");
+            XF::logError("[tl] Mailgun Integration: [Info] {$message}");
         }
     }
 

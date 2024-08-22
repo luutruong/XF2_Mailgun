@@ -6,9 +6,21 @@
 
 namespace Truonglv\Mailgun\Transport;
 
-use Swift_Events_EventListener;
+use XF;
+use Exception;
+use Throwable;
+use LogicException;
+use function in_array;
+use function json_encode;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Address;
+use Symfony\Component\Mailer\Envelope;
+use Symfony\Component\Mailer\SentMessage;
+use Symfony\Component\Mime\MessageConverter;
+use Symfony\Component\Mailer\Exception\RuntimeException;
+use Symfony\Component\Mailer\Transport\AbstractTransport;
 
-class MailGun implements \Swift_Transport
+class MailGun extends AbstractTransport
 {
     const API_BASE = 'https://api.mailgun.net/v3';
     const DEFAULT_SENDER_NAME = 'xenforo';
@@ -24,119 +36,42 @@ class MailGun implements \Swift_Transport
     protected $apiKey;
 
     /**
-     * @var \GuzzleHttp\Client
-     */
-    protected $httpClient;
-
-    /**
-     * @var \Swift_Events_EventDispatcher
-     */
-    protected $eventDispatcher;
-
-    /**
      * @var string
      */
     protected $senderName;
 
-    public function __construct(\Swift_Events_EventDispatcher $eventDispatcher)
-    {
-        $this->httpClient = \XF::app()->http()->client();
-        $this->eventDispatcher = $eventDispatcher;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isStarted()
-    {
-        return false;
-    }
-
-    /**
-     * @param string $apiKey
-     * @return void
-     */
-    public function setApiKey(string $apiKey)
+    public function setApiKey(string $apiKey): void
     {
         $this->apiKey = $apiKey;
     }
 
-    /**
-     * @param string $domain
-     * @return void
-     */
-    public function setDomain(string $domain)
+    public function setDomain(string $domain): void
     {
         $this->domain = $domain;
     }
 
-    /**
-     * @param string $senderName
-     * @return void
-     */
-    public function setSenderName(string $senderName)
+    public function setSenderName(string $senderName): void
     {
         $this->senderName = $senderName;
     }
 
-    /**
-     * @return void
-     */
-    public function stop()
+    private function assertApiWasSetup(): void
     {
-        // TODO: Implement stop() method.
+        if (trim($this->domain) === '' || trim($this->apiKey) === '') {
+            throw new LogicException('MailGun was not setup correctly.');
+        }
     }
 
-    /**
-     * @param Swift_Events_EventListener $plugin
-     * @return void
-     */
-    public function registerPlugin(Swift_Events_EventListener $plugin)
-    {
-        $this->eventDispatcher->bindEventListener($plugin);
-    }
-
-    /**
-     * @return void
-     */
-    public function start()
-    {
-        // TODO: Implement start() method.
-    }
-
-    /**
-     * @param \Swift_Mime_SimpleMessage $message
-     * @param mixed $failedRecipients
-     * @return int
-     */
-    public function send(\Swift_Mime_SimpleMessage $message, &$failedRecipients = [])
+    protected function doSend(SentMessage $message): void
     {
         $this->assertApiWasSetup();
+        $client = XF::app()->http()->client();
 
-        $failedRecipients = (array) $failedRecipients;
-
-        /** @var mixed $evt */
-        $evt = $this->eventDispatcher->createSendEvent($this, $message);
-        if ($evt instanceof \Swift_Events_SendEvent) {
-            $this->eventDispatcher->dispatchEvent($evt, 'beforeSendPerformed');
-            if ($evt->bubbleCancelled()) {
-                return 0;
-            }
+        try {
+            $email = MessageConverter::toEmail($message->getOriginalMessage());
+        } catch (Exception $e) {
+            throw new RuntimeException(sprintf('Unable to send message with the "%s" transport: ', __CLASS__) . $e->getMessage(), 0, $e);
         }
-
-        $getRecipients = function ($method) use ($message) {
-            /** @var callable $callable */
-            $callable = [$message, $method];
-            $mixed = call_user_func($callable);
-
-            return (array) $mixed;
-        };
-
-        $to = $getRecipients('getTo');
-        $cc = $getRecipients('getCc');
-        $bcc = $getRecipients('getBcc');
-
-        $count = (count($to) + count($cc) + count($bcc));
 
         $senderName = trim($this->senderName);
         if ($senderName === '') {
@@ -145,110 +80,40 @@ class MailGun implements \Swift_Transport
 
         $payload = [
             'from' => $senderName . '@' . $this->domain,
-            'subject' => $message->getSubject(),
-            'text' => $message->getBody()
+            'subject' => $email->getSubject(),
+            'text' => $email->getBody(),
         ];
-
-        foreach ($message->getChildren() as $children) {
-            if ($children->getContentType() === 'text/html') {
-                $payload['html'] = $children->getBody();
-            } elseif ($children->getContentType() === 'text/plain') {
-                $payload['text'] = $children->getBody();
-            }
+        if ($email->getHtmlCharset() !== null) {
+            $payload['html'] = $email->getHtmlBody();
         }
 
-        $this->doSendMessage($evt, $payload, 'to', array_keys($to), $failedRecipients);
-        $this->doSendMessage($evt, $payload, 'cc', array_keys($cc), $failedRecipients);
-        $this->doSendMessage($evt, $payload, 'bcc', array_keys($bcc), $failedRecipients);
-
-        return $count;
-    }
-
-    /**
-     * @param \Swift_Events_SendEvent $event
-     * @param array $payload
-     * @param string $recipientKey
-     * @param array $recipients
-     * @param array $failedRecipients
-     * @return bool
-     */
-    private function doSendMessage(
-        \Swift_Events_SendEvent $event,
-        array $payload,
-        string $recipientKey,
-        array $recipients,
-        array &$failedRecipients = []
-    ) {
-        foreach ($recipients as $recipient) {
-            $response = null;
-
-            $payload[$recipientKey] = $recipient;
+        foreach ($this->getRecipients($email, $message->getEnvelope()) as $recipient) {
+            $payload['to'] = $recipient;
 
             try {
-                $response = $this->httpClient->post(self::API_BASE . '/' . $this->domain . '/messages', [
+                $client->post(self::API_BASE . '/' . $this->domain . '/messages', [
                     'auth' => [
                         'api',
                         $this->apiKey
                     ],
-                    'form_params' => $payload
+                    'form_params' => $payload,
+                    'http_errors' => true,
                 ]);
-            } catch (\Exception $e) {
-                $_GET['__doSendMessagePayload'] = $payload;
-                $this->logError($e);
-                unset($_GET['__doSendMessagePayload']);
+            } catch (Throwable $e) {
+                XF::app()->logException($e, 'failed to send message: ' . json_encode($payload) . ' ');
             }
-
-            if ($response === null || $response->getStatusCode() !== 200) {
-                $failedRecipients[] = $recipient;
-
-                return false;
-            }
-
-            $json = json_decode($response->getBody()->getContents(), true);
-            if (!isset($json['id'])) {
-                $failedRecipients[] = $recipient;
-
-                $_GET['__doSendMessageResponse'] = $json;
-                $this->logError('Bad json response!');
-                unset($_GET['__doSendMessageResponse']);
-
-                return false;
-            }
-
-            $this->eventDispatcher->dispatchEvent($event, 'sendPerformed');
-        }
-
-        return true;
-    }
-
-    /**
-     * @param string|\Exception $error
-     * @return void
-     */
-    private function logError($error)
-    {
-        if ($error instanceof \Exception) {
-            \XF::logException($error, false, '[tl] Mailgun Integration: ');
-        } else {
-            \XF::logError("[tl] Mailgun Integration: {$error}");
         }
     }
 
-    /**
-     * @return void
-     */
-    private function assertApiWasSetup()
+    protected function getRecipients(Email $email, Envelope $envelope): array
     {
-        if (trim($this->domain) === '' || trim($this->apiKey) === '') {
-            throw new \LogicException('MailGun was not setup correctly.');
-        }
+        return array_filter($envelope->getRecipients(), function (Address $address) use ($email) {
+            return false === in_array($address, array_merge($email->getCc(), $email->getBcc()), true);
+        });
     }
 
-    /**
-     * @return bool
-     */
-    public function ping()
+    public function __toString(): string
     {
-        return false;
+        return 'mailgun';
     }
 }
