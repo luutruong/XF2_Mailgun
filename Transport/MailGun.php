@@ -88,7 +88,7 @@ class MailGun extends AbstractTransport
         }
 
         foreach ($this->getRecipients($email, $message->getEnvelope()) as $recipient) {
-            $payload['to'] = $recipient;
+            $payload['to'] = $recipient->getAddress();
 
             try {
                 $client->post(self::API_BASE . '/' . $this->domain . '/messages', [
